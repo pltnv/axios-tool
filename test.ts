@@ -5,8 +5,8 @@ const apiManager = api({
   interceptors: { request: { onFulfilled: requestOnFulfilled } },
 });
 
-function requestOnFulfilled(config) {
-  console.log("done", config);
+function requestOnFulfilled(config: any) {
+  return config;
 }
 
 async function getPost1() {

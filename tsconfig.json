@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "NodeNext",
+    "strict": true,
+    "esModuleInterop": true,
+    "moduleResolution": "nodenext",
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "allowJs": true,
+    // "allowImportingTsExtensions": true,
+    "noEmit": false,
+    "outDir": "./build"
+  },
+  "include": ["index.ts", "test.ts"],
+  "exclude": ["node_modules"]
+}
