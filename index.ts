@@ -1,13 +1,26 @@
-import axios from "axios";
+import axios, { AxiosResponse, AxiosError } from "axios";
+
+type Method = "get" | "post" | "put" | "patch" | "delete";
+
+type Interceptors<T = any, R = AxiosResponse> = {
+  request?: {
+    onFulfilled?: (config: T) => T;
+    onRejected?: (error: AxiosError) => Promise<any>;
+  };
+  response?: {
+    onFulfilled?: (response: R) => R;
+    onRejected?: (error: AxiosError) => Promise<any>;
+  };
+};
 
 const DEFAULT_CONFIG = {
-  url: 'https://jsonplaceholder.typicode.com/"',
+  url: "https://jsonplaceholder.typicode.com/",
   headers: {
     accept: "application/json",
   },
 };
 
-const DEFAULT_INTERCEPTORS = {
+const DEFAULT_INTERCEPTORS: Interceptors = {
   request: {
     onFulfilled: (config) => config,
     onRejected: (error) => Promise.reject(error),
@@ -18,14 +31,18 @@ const DEFAULT_INTERCEPTORS = {
   },
 };
 
-export function api(
+export const api = (
   {
     url = DEFAULT_CONFIG.url,
     headers = {},
     interceptors = DEFAULT_INTERCEPTORS,
+  }: {
+    url?: string;
+    headers?: Record<string, string>;
+    interceptors?: Interceptors;
   },
-  timeout
-) {
+  timeout?: number
+) => {
   const api = axios.create({
     baseURL: url,
     headers: { ...DEFAULT_CONFIG.headers, ...headers },
@@ -48,6 +65,13 @@ export function api(
     query = {},
     signal,
     timeout,
+  }: {
+    method: Method;
+    path: string;
+    payload?: Record<string, any>;
+    query?: Record<string, any>;
+    signal?: AbortSignal;
+    timeout?: number;
   }) => {
     try {
       return api[method](path, {
@@ -61,42 +85,82 @@ export function api(
     }
   };
 
-  const get = async (path, query, signal, timeout) => {
+  const get = async (
+    path: string,
+    query?: Record<string, any>,
+    signal?: any,
+    timeout?: number
+  ) => {
     return request({ method: "get", path, query, signal, timeout });
   };
 
-  const post = (path, payload, signal) => {
+  const post = (
+    path: string,
+    payload: Record<string, any>,
+    signal?: any,
+    timeout?: number
+  ) => {
     return request({ method: "post", path, payload, signal, timeout });
   };
 
-  const put = (path, payload, signal) => {
+  const put = (
+    path: string,
+    payload: Record<string, any>,
+    signal?: any,
+    timeout?: number
+  ) => {
     return request({ method: "put", path, payload, signal, timeout });
   };
 
-  const patch = (path, payload, signal) => {
+  const patch = (
+    path: string,
+    payload: Record<string, any>,
+    signal?: any,
+    timeout?: number
+  ) => {
     return request({ method: "patch", path, payload, signal, timeout });
   };
 
-  const del = (path, signal) => {
+  const del = (path: string, signal?: any, timeout?: number) => {
     return request({ method: "delete", path, signal, timeout });
   };
 
-  const $get = async (path, query, signal) => {
+  const $get = async (
+    path: string,
+    query?: Record<string, any>,
+    signal?: any,
+    timeout?: number
+  ) => {
     const { data } = await get(path, query, signal);
     return data;
   };
 
-  const $post = async (path, payload, signal) => {
+  const $post = async (
+    path: string,
+    payload: Record<string, any>,
+    signal?: any,
+    timeout?: number
+  ) => {
     const { data } = await post(path, payload, signal);
     return data;
   };
 
-  const $put = async (path, payload, signal) => {
+  const $put = async (
+    path: string,
+    payload: Record<string, any>,
+    signal?: any,
+    timeout?: number
+  ) => {
     const { data } = await put(path, payload, signal);
     return data;
   };
 
-  const $patch = async (path, payload, signal) => {
+  const $patch = async (
+    path: string,
+    payload: Record<string, any>,
+    signal?: any,
+    timeout?: number
+  ) => {
     const { data } = await patch(path, payload, signal);
     return data;
   };
@@ -113,4 +177,4 @@ export function api(
     $put,
     $patch,
   };
-}
+};
