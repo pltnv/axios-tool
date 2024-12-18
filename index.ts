@@ -31,6 +31,20 @@ const DEFAULT_INTERCEPTORS: Interceptors = {
   },
 };
 
+const handleError = (error: AxiosError) => Promise.reject(error);
+
+const createApi = (
+  url: string,
+  headers: Record<string, string>,
+  timeout?: number
+) => {
+  return axios.create({
+    baseURL: url,
+    headers: { ...DEFAULT_CONFIG.headers, ...headers },
+    ...(timeout && { timeout }),
+  });
+};
+
 export const api = (
   {
     url = DEFAULT_CONFIG.url,
@@ -43,19 +57,15 @@ export const api = (
   },
   timeout?: number
 ) => {
-  const api = axios.create({
-    baseURL: url,
-    headers: { ...DEFAULT_CONFIG.headers, ...headers },
-    ...(timeout && { timeout }),
-  });
+  const api = createApi(url, headers, timeout);
 
   api.interceptors.request.use(
     interceptors?.request?.onFulfilled || ((config) => config),
-    interceptors?.request?.onRejected || ((error) => Promise.reject(error))
+    interceptors?.request?.onRejected || handleError
   );
   api.interceptors.response.use(
     interceptors?.response?.onFulfilled || ((response) => response),
-    interceptors?.response?.onRejected || ((error) => Promise.reject(error))
+    interceptors?.response?.onRejected || handleError
   );
 
   const request = async ({
