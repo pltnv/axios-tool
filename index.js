@@ -47,32 +47,38 @@ export function api(
     payload = {},
     query = {},
     signal,
+    timeout,
   }) => {
     try {
-      return api[method](path, { ...payload, ...query, signal });
+      return api[method](path, {
+        ...payload,
+        ...query,
+        signal,
+        ...(timeout && { timeout }),
+      });
     } catch (e) {
       throw e;
     }
   };
 
-  const get = async (path, query, signal) => {
-    return request({ method: "get", path, query, signal });
+  const get = async (path, query, signal, timeout) => {
+    return request({ method: "get", path, query, signal, timeout });
   };
 
   const post = (path, payload, signal) => {
-    return request({ method: "post", path, payload, signal });
+    return request({ method: "post", path, payload, signal, timeout });
   };
 
   const put = (path, payload, signal) => {
-    return request({ method: "put", path, payload, signal });
+    return request({ method: "put", path, payload, signal, timeout });
   };
 
   const patch = (path, payload, signal) => {
-    return request({ method: "patch", path, payload, signal });
+    return request({ method: "patch", path, payload, signal, timeout });
   };
 
   const del = (path, signal) => {
-    return request({ method: "delete", path, signal });
+    return request({ method: "delete", path, signal, timeout });
   };
 
   const $get = async (path, query, signal) => {
