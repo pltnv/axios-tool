@@ -1,18 +1,19 @@
 import { api } from "./index.js";
+import { InternalAxiosRequestConfig } from "axios";
+
+function requestOnFulfilled(config: InternalAxiosRequestConfig) {
+  return config;
+}
 
 const apiManager = api({
   url: "https://jsonplaceholder.typicode.com/",
   interceptors: { request: { onFulfilled: requestOnFulfilled } },
 });
 
-function requestOnFulfilled(config: any) {
-  return config;
-}
-
 async function getPost1() {
   try {
-    const kek = await apiManager.get("/posts/1", {});
-    return kek;
+    const result = await apiManager.get("/posts/1", {});
+    return result;
   } catch (e) {
     console.log(e);
   }
@@ -20,12 +21,10 @@ async function getPost1() {
 
 async function getCommentWithQuery() {
   try {
-    const kek = await apiManager.$get("/comments", {
-      params: {
-        postId: 1,
-      },
+    const result = await apiManager.$get("/comments", {
+      postId: 1,
     });
-    return kek;
+    return result;
   } catch (e) {
     console.log(e);
   }

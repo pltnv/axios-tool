@@ -1,15 +1,15 @@
-import axios, { AxiosResponse, AxiosError } from "axios";
+import axios, { AxiosResponse, AxiosError, AxiosRequestConfig, InternalAxiosRequestConfig } from "axios";
 
 type Method = "get" | "post" | "put" | "patch" | "delete";
 
-type Interceptors<T = any, R = AxiosResponse> = {
+type Interceptors<T = InternalAxiosRequestConfig, R = AxiosResponse> = {
   request?: {
     onFulfilled?: (config: T) => T;
-    onRejected?: (error: AxiosError) => Promise<any>;
+    onRejected?: (error: AxiosError) => Promise<AxiosError | never>;
   };
   response?: {
     onFulfilled?: (response: R) => R;
-    onRejected?: (error: AxiosError) => Promise<any>;
+    onRejected?: (error: AxiosError) => Promise<AxiosError | never>;
   };
 };
 
@@ -17,17 +17,6 @@ const DEFAULT_CONFIG = {
   url: "https://jsonplaceholder.typicode.com/",
   headers: {
     accept: "application/json",
-  },
-};
-
-const DEFAULT_INTERCEPTORS: Interceptors = {
-  request: {
-    onFulfilled: (config) => config,
-    onRejected: (error) => Promise.reject(error),
-  },
-  response: {
-    onFulfilled: (response) => response,
-    onRejected: (error) => Promise.reject(error),
   },
 };
 
@@ -49,7 +38,7 @@ export const api = (
   {
     url = DEFAULT_CONFIG.url,
     headers = {},
-    interceptors = DEFAULT_INTERCEPTORS,
+    interceptors,
   }: {
     url?: string;
     headers?: Record<string, string>;
@@ -60,11 +49,11 @@ export const api = (
   const api = createApi(url, headers, timeout);
 
   api.interceptors.request.use(
-    interceptors?.request?.onFulfilled || ((config) => config),
+    interceptors?.request?.onFulfilled || ((config: InternalAxiosRequestConfig) => config),
     interceptors?.request?.onRejected || handleError
   );
   api.interceptors.response.use(
-    interceptors?.response?.onFulfilled || ((response) => response),
+    interceptors?.response?.onFulfilled || ((response: AxiosResponse) => response),
     interceptors?.response?.onRejected || handleError
   );
 
@@ -78,27 +67,30 @@ export const api = (
   }: {
     method: Method;
     path: string;
-    payload?: Record<string, any>;
-    query?: Record<string, any>;
+    payload?: Record<string, unknown>;
+    query?: Record<string, unknown>;
     signal?: AbortSignal;
     timeout?: number;
   }) => {
-    try {
-      return api[method](path, {
-        ...payload,
-        ...query,
-        signal,
-        ...(timeout && { timeout }),
-      });
-    } catch (e) {
-      throw e;
+    const config: Partial<AxiosRequestConfig> = {
+      signal,
+      ...(timeout && { timeout }),
+    };
+
+    if (method === "get" || method === "delete") {
+      config.params = query;
+    } else {
+      config.data = payload;
+      config.params = query;
     }
+
+    return api[method](path, config);
   };
 
   const get = async (
     path: string,
-    query?: Record<string, any>,
-    signal?: any,
+    query?: Record<string, unknown>,
+    signal?: AbortSignal,
     timeout?: number
   ) => {
     return request({ method: "get", path, query, signal, timeout });
@@ -106,8 +98,8 @@ export const api = (
 
   const post = (
     path: string,
-    payload: Record<string, any>,
-    signal?: any,
+    payload: Record<string, unknown>,
+    signal?: AbortSignal,
     timeout?: number
   ) => {
     return request({ method: "post", path, payload, signal, timeout });
@@ -115,8 +107,8 @@ export const api = (
 
   const put = (
     path: string,
-    payload: Record<string, any>,
-    signal?: any,
+    payload: Record<string, unknown>,
+    signal?: AbortSignal,
     timeout?: number
   ) => {
     return request({ method: "put", path, payload, signal, timeout });
@@ -124,54 +116,63 @@ export const api = (
 
   const patch = (
     path: string,
-    payload: Record<string, any>,
-    signal?: any,
+    payload: Record<string, unknown>,
+    signal?: AbortSignal,
     timeout?: number
   ) => {
     return request({ method: "patch", path, payload, signal, timeout });
   };
 
-  const del = (path: string, signal?: any, timeout?: number) => {
+  const del = (path: string, signal?: AbortSignal, timeout?: number) => {
     return request({ method: "delete", path, signal, timeout });
   };
 
   const $get = async (
     path: string,
-    query?: Record<string, any>,
-    signal?: any,
+    query?: Record<string, unknown>,
+    signal?: AbortSignal,
     timeout?: number
   ) => {
-    const { data } = await get(path, query, signal);
+    const { data } = await get(path, query, signal, timeout);
     return data;
   };
 
   const $post = async (
     path: string,
-    payload: Record<string, any>,
-    signal?: any,
+    payload: Record<string, unknown>,
+    signal?: AbortSignal,
     timeout?: number
   ) => {
-    const { data } = await post(path, payload, signal);
+    const { data } = await post(path, payload, signal, timeout);
     return data;
   };
 
   const $put = async (
     path: string,
-    payload: Record<string, any>,
-    signal?: any,
+    payload: Record<string, unknown>,
+    signal?: AbortSignal,
     timeout?: number
   ) => {
-    const { data } = await put(path, payload, signal);
+    const { data } = await put(path, payload, signal, timeout);
     return data;
   };
 
   const $patch = async (
     path: string,
-    payload: Record<string, any>,
-    signal?: any,
+    payload: Record<string, unknown>,
+    signal?: AbortSignal,
     timeout?: number
   ) => {
-    const { data } = await patch(path, payload, signal);
+    const { data } = await patch(path, payload, signal, timeout);
+    return data;
+  };
+
+  const $del = async (
+    path: string,
+    signal?: AbortSignal,
+    timeout?: number
+  ) => {
+    const { data } = await del(path, signal, timeout);
     return data;
   };
 
@@ -186,5 +187,6 @@ export const api = (
     $post,
     $put,
     $patch,
+    $del,
   };
 };
