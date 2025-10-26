@@ -1,15 +1,37 @@
 {
   "name": "axios-toolkit",
   "version": "1.0.0",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "description": "Simple wrapper around axios for quick HTTP client setup",
+  "main": "./build/index.js",
+  "types": "./build/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./build/index.js",
+      "types": "./build/index.d.ts"
+    }
   },
   "type": "module",
-  "keywords": [],
-  "author": "",
+  "files": [
+    "build/**/*"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "axios",
+    "http",
+    "client",
+    "api",
+    "request",
+    "interceptor"
+  ],
+  "author": "https://github.com/pltnv",
   "license": "MIT",
-  "description": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pltnv/axios-tool"
+  },
   "dependencies": {
     "axios": "^1.7.9"
   },
